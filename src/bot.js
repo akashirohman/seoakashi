@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 async function runBot(keyword, targetURL, proxy) {
   const browser = await puppeteer.launch({
-    headless: true,
+  headless: 'new',
     args: [
       `--proxy-server=http://${proxy}`,
       '--no-sandbox',
