@@ -1,14 +1,32 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
-async function fetchProxies() {
-  try {
-    const res = await fetch('https://www.proxy-list.download/api/v1/get?type=http');
-    const text = await res.text();
-    return text.split('\r\n').filter(Boolean);
-  } catch (e) {
-    console.error('Gagal ambil proxy:', e);
-    return [];
+// Fungsi untuk mengambil dan menggabungkan proxy dari URL dalam proxy.txt
+async function fetchProxiesFromURLs() {
+  const urls = fs.readFileSync(path.join(__dirname, '../proxy.txt'), 'utf-8')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.startsWith('http'));
+
+  const proxies = [];
+
+  for (const url of urls) {
+    try {
+      const res = await axios.get(url, { timeout: 5000 });
+      const raw = res.data;
+      const lines = raw.split('\n')
+        .map(line => line.trim())
+        .filter(line => /^\d+\.\d+\.\d+\.\d+:\d+$/.test(line));
+      proxies.push(...lines);
+    } catch (err) {
+      console.warn(`[WARNING] Gagal ambil proxy dari ${url}`);
+    }
   }
+
+  return proxies;
 }
 
-module.exports = { fetchProxies };
+module.exports = {
+  fetchProxiesFromURLs
+};
